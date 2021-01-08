@@ -93,11 +93,7 @@ module.exports = async function book(wantedTimes, month, year, day) {
 
     await driver.wait(until.elementLocated(By.id('btnSubmit')), 5000);
 
-    await driver.takeScreenshot().then((image) => {
-      require('fs').writeFile('found-court.png', image, 'base64', (err) => {
-        if (err) console.log(err);
-      });
-    });
+    // @TODO finish booking the found date
   } finally {
     await driver.quit();
   }
