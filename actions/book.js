@@ -77,10 +77,10 @@ async function findAvailableSlot(wantedTimes) {
   return false;
 }
 
-module.exports = async function book(wantedTimes, month, year, day) {
+module.exports = async function book(center, wantedTimes, month, year, day) {
   try {
     await login();
-    await useCenter('https://www.matchi.se/facilities/pdlcenter', 'PDL Center Frihamnen');
+    await useCenter(center.url, center.title);
     await useDate(month, year, day);
     const found = await findAvailableSlot(wantedTimes);
 
