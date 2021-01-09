@@ -4,8 +4,10 @@ const moment = require('moment-timezone');
 const driver = new Builder().usingServer(`${process.env.WEBDRIVER_HOST}/wd/hub`).forBrowser('chrome').build();
 
 async function login() {
+  console.log('logging in...');
+
   await driver.get('https://www.matchi.se/login/auth?returnUrl=%2Fprofile%2Fhome');
-  await driver.wait(until.titleIs('Login - MATCHi'), 1000);
+  await driver.wait(until.titleIs('Login - MATCHi'), 5000);
 
   await driver.findElement(By.id('username')).sendKeys(process.env.USERNAME);
   await driver.findElement(By.id('password')).sendKeys(process.env.PASSWORD);
@@ -13,17 +15,21 @@ async function login() {
   await driver.findElement(By.css('#loginForm button')).click();
   await driver.wait(until.titleIs(`${process.env.NAME} - MATCHi`), 5000);
 
-  console.log('logged in');
+  console.log('logged in!');
 }
 
 async function useCenter(url, title) {
+  console.log('finding center...');
+
   await driver.get(url);
   await driver.wait(until.titleIs(title), 5000);
 
-  console.log('found center');
+  console.log('found center!');
 }
 
 async function useDate(month, year, day) {
+  console.log('finding date...');
+
   // if no passed date, use next available date (+14 days from current time)
   if (!month || !year || !day) {
     const nextAvailableDate = moment().add(14, 'day').tz('Europe/Stockholm').locale('sv').format('MMMM, YYYY, D');
@@ -49,10 +55,12 @@ async function useDate(month, year, day) {
     }
   }
 
-  console.log('found date');
+  console.log('found date!');
 }
 
 async function findAvailableSlot(wantedTimes) {
+  console.log('finding available slot...');
+
   const free = await driver.findElements(By.css('.schedule .free'));
 
   for (const freeEl of free) {
@@ -71,30 +79,37 @@ async function findAvailableSlot(wantedTimes) {
 
     await freeEl.click();
 
-    return true;
+    console.log('found available slot!');
   }
 
-  return false;
+  throw new Error('No available slot found');
+}
+
+async function finalize() {
+  console.log('finalizing payment...');
+
+  await driver.wait(until.elementLocated(By.id('btnSubmit')), 5000);
+  await driver.findElement(By.id('btnSubmit')).click();
+
+  console.log('finalized payment!');
 }
 
 module.exports = async function book(center, wantedTimes, month, year, day) {
   try {
+    console.log('booking');
+
     await login();
     await useCenter(center.url, center.title);
     await useDate(month, year, day);
-    const found = await findAvailableSlot(wantedTimes);
+    await findAvailableSlot(wantedTimes);
+    await finalize();
 
-    if (!found) {
-      console.log('no court found');
-      return;
-    }
-
-    console.log('found court');
-
-    await driver.wait(until.elementLocated(By.id('btnSubmit')), 5000);
-
-    // @TODO finish booking the found date
+    console.log('booking successful!');
+  } catch (error) {
+    console.error(error);
   } finally {
+    console.log('closing booking session.');
+
     await driver.quit();
   }
 }
