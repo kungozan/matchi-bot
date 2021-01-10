@@ -16,11 +16,7 @@ switch (process.env.ENV) {
     break;
 }
 
-const driver = builder
-  .setChromeOptions(options)
-  .build();
-
-async function login() {
+async function login(driver) {
   console.log('logging in...');
 
   await driver.get('https://www.matchi.se/login/auth?returnUrl=%2Fprofile%2Fhome');
@@ -35,7 +31,7 @@ async function login() {
   console.log('logged in!');
 }
 
-async function useCenter(url, title) {
+async function useCenter(driver, url, title) {
   console.log('finding center...');
 
   await driver.get(url);
@@ -44,7 +40,7 @@ async function useCenter(url, title) {
   console.log('found center!');
 }
 
-async function useDate(month, year, day) {
+async function useDate(driver, month, year, day) {
   console.log('finding date...');
 
   // if no passed date, use next available date (+14 days from current time)
@@ -75,7 +71,7 @@ async function useDate(month, year, day) {
   console.log('found date!');
 }
 
-async function findAvailableSlot(wantedTimes) {
+async function findAvailableSlot(driver, wantedTimes) {
   console.log('finding available slot...');
 
   const free = await driver.findElements(By.css('.schedule .free'));
@@ -102,7 +98,7 @@ async function findAvailableSlot(wantedTimes) {
   throw new Error('No available slot found');
 }
 
-async function finalize() {
+async function finalize(driver) {
   console.log('finalizing payment...');
 
   await driver.wait(until.elementLocated(By.id('btnSubmit')), 5000);
@@ -112,6 +108,10 @@ async function finalize() {
 }
 
 module.exports = async function book(center, wantedTimes, month, year, day) {
+  const driver = builder
+    .setChromeOptions(options)
+    .build();
+
   try {
     console.log('booking');
 
@@ -119,7 +119,7 @@ module.exports = async function book(center, wantedTimes, month, year, day) {
     await useCenter(center.url, center.title);
     await useDate(month, year, day);
     await findAvailableSlot(wantedTimes);
-    // await finalize();
+    await finalize();
 
     console.log('booking successful!');
   } catch (error) {
