@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const express = require('express');
+const basicAuth = require('express-basic-auth');
 const schedule = require('node-schedule');
 const book = require('./actions/book');
 
@@ -10,12 +11,19 @@ const app = express()
 const center = { url: 'https://www.matchi.se/facilities/pdlcenter', title: 'PDL Center Frihamnen' };
 const wantedTimes = ['18:00 - 19:00', '19:00 - 20:00', '20:00 - 21:00', '21:00 - 22:00'];
 
-app.use(basicAuth({ users: { [process.env.AUTH_USERNAME]: process.env.AUTH_PASSWORD } }));
+app.use(express.static('public'));
 
-app.post('/book', (req, res) => {
+app.post('/book', basicAuth({ users: { [process.env.AUTH_USERNAME]: process.env.AUTH_PASSWORD } }), (req, res) => {
   book(req.body.center, req.body.wantedTimes, req.body.month, req.body.year, req.body.day);
 
   res.end();
+});
+
+app.get('*', (req, res) => {
+  res.send(`
+    <img src="/bot.png" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 100%; padding: 25px; box-sizing: border-box;" />
+    <style>* { background: red; }</style>
+  `);
 });
 
 app.listen(process.env.PORT, () => {
