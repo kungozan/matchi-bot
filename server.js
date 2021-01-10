@@ -20,8 +20,69 @@ app.post('/book', basicAuth({ users: { [process.env.AUTH_USERNAME]: process.env.
 
 app.get('/', (req, res) => {
   res.send(`
-    <img src="/bot.png" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 100%; margin: 0 auto; box-sizing: border-box;" />
-    <style>* { background: black; }</style>
+    <img src="/bot.png" />
+    <style>
+      * {
+        background: black;
+      }
+
+      img {
+        box-sizing: border-box;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        max-width: 90%;
+        max-height: 100%;
+        margin: 0 auto;
+        animation: play 5s linear infinite;
+      }
+
+      @keyframes play {
+        0% {
+          transform: translate(calc(-100vw - 50%), -50%);
+        }
+
+        24% {
+          transform: translate(calc(100vw - 50%), -50%);
+        }
+
+        25% {
+          transform: translate(calc(100vw - 50%), calc(-100vh - 50%));
+        }
+
+        26% {
+          transform: translate(-50%, calc(-100vh - 50%));
+        }
+
+        49% {
+          transform: translate(-50%, calc(100vh - 50%));
+        }
+
+        50% {
+          transform: translate(calc(100vw - 50%), calc(100vh - 50%));
+        }
+
+        51% {
+          transform: translate(calc(100vw - 50%), -50%);
+        }
+
+        74% {
+          transform: translate(calc(-100vw - 50%), -50%);
+        }
+
+        75% {
+          transform: translate(calc(-100vw - 50%), calc(100vh - 50%));
+        }
+
+        76% {
+          transform: translate(-50%, calc(100vh - 50%));
+        }
+
+        100% {
+          transform: translate(-50%, calc(-100vh - 50%));
+        }
+      }
+    </style>
   `);
 });
 
