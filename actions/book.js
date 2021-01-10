@@ -1,7 +1,24 @@
-const { Builder, By, until } = require('selenium-webdriver');
+const { Browser, Builder, By, until } = require('selenium-webdriver');
+const { Options } = require('selenium-webdriver/chrome');
 const moment = require('moment-timezone');
 
-const driver = new Builder().usingServer(`${process.env.WEBDRIVER_HOST}/wd/hub`).forBrowser('chrome').build();
+const options = new Options();
+const builder = new Builder().forBrowser(Browser.CHROME);
+
+switch (process.env.ENV) {
+  case 'production':
+    options.addArguments('--headless');
+    options.addArguments('--disable-gpu');
+    options.addArguments('--no-sandbox');
+    break;
+  default:
+    builder.usingServer('http://localhost:4444/wd/hub');
+    break;
+}
+
+const driver = builder
+  .setChromeOptions(options)
+  .build();
 
 async function login() {
   console.log('logging in...');
@@ -9,11 +26,11 @@ async function login() {
   await driver.get('https://www.matchi.se/login/auth?returnUrl=%2Fprofile%2Fhome');
   await driver.wait(until.titleIs('Login - MATCHi'), 5000);
 
-  await driver.findElement(By.id('username')).sendKeys(process.env.USERNAME);
-  await driver.findElement(By.id('password')).sendKeys(process.env.PASSWORD);
+  await driver.findElement(By.id('username')).sendKeys(process.env.MATCHI_USERNAME);
+  await driver.findElement(By.id('password')).sendKeys(process.env.MATCHI_PASSWORD);
 
   await driver.findElement(By.css('#loginForm button')).click();
-  await driver.wait(until.titleIs(`${process.env.NAME} - MATCHi`), 5000);
+  await driver.wait(until.titleIs(`${process.env.MATCHI_NAME} - MATCHi`), 5000);
 
   console.log('logged in!');
 }
@@ -102,7 +119,7 @@ module.exports = async function book(center, wantedTimes, month, year, day) {
     await useCenter(center.url, center.title);
     await useDate(month, year, day);
     await findAvailableSlot(wantedTimes);
-    await finalize();
+    // await finalize();
 
     console.log('booking successful!');
   } catch (error) {
