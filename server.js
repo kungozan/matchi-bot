@@ -90,7 +90,7 @@ app.listen(process.env.PORT, () => {
   console.log(`MATCHi Bot Actions available at ${process.env.HOST}:${process.env.PORT}`)
 
   // trigger at midnight 00:00:01 every monday, tuesday, wednesday and thursday
-  schedule.scheduleJob({ dayOfWeek: [1, 2, 3, 4], hour: 0, minute: 0, second: 1 }, () => {
+  schedule.scheduleJob({ tz: 'Europe/Stockholm', dayOfWeek: [1, 2, 3, 4], hour: 0, minute: 0, second: 1 }, () => {
     book(
       process.env.MATCHI_SCHEDULED_CENTER,
       ['18:00 - 19:30', '18:00 - 19:00', '19:00 - 20:00', '19:30 - 21:00'],
