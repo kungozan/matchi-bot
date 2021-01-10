@@ -2,6 +2,7 @@ require('dotenv').config()
 
 const express = require('express');
 const basicAuth = require('express-basic-auth');
+const bodyParser = require('body-parser');
 const schedule = require('node-schedule');
 const book = require('./actions/book');
 
@@ -11,6 +12,7 @@ const app = express()
 const center = { url: 'https://www.matchi.se/facilities/pdlcenter', title: 'PDL Center Frihamnen' };
 const wantedTimes = ['18:00 - 19:30', '18:00 - 19:00', '19:00 - 20:00', '19:30 - 21:00'];
 
+app.use(bodyParser.json());
 app.use(express.static('public'));
 
 app.post('/book', basicAuth({ users: { [process.env.AUTH_USERNAME]: process.env.AUTH_PASSWORD } }), (req, res) => {
