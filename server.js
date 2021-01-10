@@ -19,10 +19,10 @@ app.post('/book', basicAuth({ users: { [process.env.AUTH_USERNAME]: process.env.
   res.end();
 });
 
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
   res.send(`
-    <img src="/bot.png" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 100%; padding: 25px; box-sizing: border-box;" />
-    <style>* { background: red; }</style>
+    <img src="/bot.png" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 100%; margin: 0 auto; box-sizing: border-box;" />
+    <style>* { background: black; }</style>
   `);
 });
 
