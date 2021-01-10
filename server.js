@@ -9,7 +9,7 @@ const app = express()
 
 // defaults
 const center = { url: 'https://www.matchi.se/facilities/pdlcenter', title: 'PDL Center Frihamnen' };
-const wantedTimes = ['18:00 - 19:00', '19:00 - 20:00', '20:00 - 21:00', '21:00 - 22:00'];
+const wantedTimes = ['18:00 - 19:30', '18:00 - 19:00', '19:00 - 20:00', '19:30 - 21:00'];
 
 app.use(express.static('public'));
 
