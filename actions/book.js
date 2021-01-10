@@ -31,48 +31,19 @@ async function login(driver) {
   console.log('logged in!');
 }
 
-async function useCenter(driver, url, title) {
-  console.log('finding center...');
+async function findSchedule(driver, url, date) {
+  const dateString = moment(date).tz('Europe/Stockholm').locale('sv').format('dddd D MMMM');
+  console.log(`finding schedule for ${date} at ${url}...`);
 
-  await driver.get(url);
-  await driver.wait(until.titleIs(title), 5000);
+  await driver.get(`${url}?date=${date}`);
+  await driver.wait(until.elementLocated(By.id('schedule')), 5000);
+  await driver.wait(until.elementTextContains(driver.findElement(By.id('schedule')), dateString), 10000);
 
-  console.log('found center!');
-}
-
-async function useDate(driver, month, year, day) {
-  console.log('finding date...');
-
-  // if no passed date, use next available date (+14 days from current time)
-  if (!month || !year || !day) {
-    const nextAvailableDate = moment().add(14, 'day').tz('Europe/Stockholm').locale('sv').format('MMMM, YYYY, D');
-    [month, year, day] = nextAvailableDate.split(', ');
-  }
-
-  await driver.wait(until.elementLocated(By.id('picker_daily'), 15000));
-  await driver.findElement(By.id('picker_daily')).click();
-  await driver.wait(until.elementLocated(By.css('.datepicker-switch'), 10000));
-
-  // month does not match current view, move to next month
-  if (`${month} ${year}` != (await driver.findElement(By.css('.datepicker-switch')).getText()).toLowerCase()) {
-    await driver.findElement(By.css('.datepicker .next')).click();
-  }
-
-  const days = await driver.findElements(By.css('.datepicker .day:not(.old):not(.new)'));
-
-  for (const dayEl of days) {
-    if (await dayEl.getText() == day) {
-      await dayEl.click();
-      await driver.wait(until.elementTextContains(driver.findElement(By.id('schedule')), `${day} ${month}`), 10000);
-      break;
-    }
-  }
-
-  console.log('found date!');
+  console.log('found schedule!');
 }
 
 async function findAvailableSlot(driver, wantedTimes) {
-  console.log('finding available slot...');
+  console.log(`finding available slot matching "${wantedTimes.join(' | ')}"...`);
 
   const free = await driver.findElements(By.css('.schedule .free'));
 
@@ -93,31 +64,33 @@ async function findAvailableSlot(driver, wantedTimes) {
     await freeEl.click();
 
     console.log('found available slot!');
+
+    return;
   }
 
-  throw new Error('No available slot found');
+  throw new Error('no available slot found');
 }
 
 async function finalize(driver) {
   console.log('finalizing payment...');
 
   await driver.wait(until.elementLocated(By.id('btnSubmit')), 5000);
+  await driver.sleep(5000);
   await driver.findElement(By.id('btnSubmit')).click();
 
   console.log('finalized payment!');
 }
 
-module.exports = async function book(center, wantedTimes, month, year, day) {
+module.exports = async function book(center, wantedTimes, date) {
   const driver = builder
     .setChromeOptions(options)
     .build();
 
   try {
-    console.log('booking');
+    console.log('booking...');
 
     await login(driver);
-    await useCenter(driver, center.url, center.title);
-    await useDate(driver, month, year, day);
+    await findSchedule(driver, center, date);
     await findAvailableSlot(driver, wantedTimes);
     await finalize(driver);
 
