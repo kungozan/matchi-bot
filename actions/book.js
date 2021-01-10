@@ -115,11 +115,11 @@ module.exports = async function book(center, wantedTimes, month, year, day) {
   try {
     console.log('booking');
 
-    await login();
-    await useCenter(center.url, center.title);
-    await useDate(month, year, day);
-    await findAvailableSlot(wantedTimes);
-    await finalize();
+    await login(driver);
+    await useCenter(driver, center.url, center.title);
+    await useDate(driver, month, year, day);
+    await findAvailableSlot(driver, wantedTimes);
+    await finalize(driver);
 
     console.log('booking successful!');
   } catch (error) {
