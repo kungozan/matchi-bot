@@ -4,6 +4,7 @@ const moment = require('moment-timezone');
 
 const options = new Options();
 const builder = new Builder().forBrowser(Browser.CHROME);
+const THIRTY_SECONDS = 30000;
 
 switch (process.env.ENV) {
   case 'production':
@@ -20,13 +21,13 @@ async function login(driver) {
   console.log('logging in...');
 
   await driver.get('https://www.matchi.se/login/auth?returnUrl=%2Fprofile%2Fhome');
-  await driver.wait(until.titleIs('Login - MATCHi'), 5000);
+  await driver.wait(until.titleIs('Login - MATCHi'), THIRTY_SECONDS);
 
   await driver.findElement(By.id('username')).sendKeys(process.env.MATCHI_USERNAME);
   await driver.findElement(By.id('password')).sendKeys(process.env.MATCHI_PASSWORD);
 
   await driver.findElement(By.css('#loginForm button')).click();
-  await driver.wait(until.titleIs(`${process.env.MATCHI_NAME} - MATCHi`), 5000);
+  await driver.wait(until.titleIs(`${process.env.MATCHI_NAME} - MATCHi`), THIRTY_SECONDS);
 
   console.log('logged in!');
 }
@@ -36,8 +37,8 @@ async function findSchedule(driver, url, date) {
   console.log(`finding schedule for ${date} at ${url}...`);
 
   await driver.get(`${url}?date=${date}`);
-  await driver.wait(until.elementLocated(By.id('schedule')), 5000);
-  await driver.wait(until.elementTextContains(driver.findElement(By.id('schedule')), dateString), 10000);
+  await driver.wait(until.elementLocated(By.id('schedule')), THIRTY_SECONDS);
+  await driver.wait(until.elementTextContains(driver.findElement(By.id('schedule')), dateString), THIRTY_SECONDS);
 
   console.log('found schedule!');
 }
@@ -74,17 +75,19 @@ async function findAvailableSlot(driver, wantedTimes) {
 async function finalize(driver) {
   console.log('finalizing payment...');
 
-  await driver.wait(until.elementLocated(By.id('btnSubmit')), 5000);
+  await driver.wait(until.elementLocated(By.id('btnSubmit')), THIRTY_SECONDS);
   await driver.sleep(5000);
   await driver.findElement(By.id('btnSubmit')).click();
 
   console.log('finalized payment!');
 }
 
-module.exports = async function book(center, wantedTimes, date) {
+module.exports = async function book(center, wantedTimes, date, attempt = 1) {
   const driver = builder
     .setChromeOptions(options)
     .build();
+
+  let successful;
 
   try {
     console.log('booking...');
@@ -94,12 +97,18 @@ module.exports = async function book(center, wantedTimes, date) {
     await findAvailableSlot(driver, wantedTimes);
     await finalize(driver);
 
+    successful = true;
     console.log('booking successful!');
   } catch (error) {
+    successful = false;
+    console.log(`attempt #${attempt} failed.`);
     console.error(error);
   } finally {
-    console.log('closing booking session.');
-
     await driver.quit();
+
+    // retry once
+    if (!successful && attempt < 2) {
+      book(center, wantedTimes, date, attempt + 1);
+    }
   }
 }
